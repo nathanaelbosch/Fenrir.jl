@@ -1,0 +1,3 @@
+var documenterSearchIndex = {"docs":
+[{"location":"","page":"Home","title":"Home","text":"CurrentModule = Fenrir","category":"page"},{"location":"#Fenrir","page":"Home","title":"Fenrir","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"Documentation for Fenrir.","category":"page"},{"location":"","page":"Home","title":"Home","text":"","category":"page"},{"location":"","page":"Home","title":"Home","text":"Modules = [Fenrir]","category":"page"},{"location":"#Fenrir.exact_nll-Tuple{SciMLBase.ODEProblem, Any, Any, Any}","page":"Home","title":"Fenrir.exact_nll","text":"Compute the exact negative log-likelihood (NLL) of data given a problem and algorithm\n\n\n\n\n\n","category":"method"}]
+}
