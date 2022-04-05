@@ -3,8 +3,15 @@ uuid = "e9b4b195-f5cd-427c-8076-5358c553c37f"
 authors = ["Nathanael Bosch <nathanael.bosch@uni-tuebingen.de> and contributors"]
 version = "0.1.0"
 
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+ProbNumDiffEq = "bf3e78b0-7d74-48a5-b855-9609533b56a5"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
+
 [compat]
-julia = "1"
+julia = "1.7"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
