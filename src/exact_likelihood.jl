@@ -21,11 +21,8 @@ function exact_nll(
     σ² = observation_noise_var
 
     κ² = diffusion_var
-    alg = EK1(
-        order=order,
-        diffusionmodel=FixedMVDiffusion(κ², false),
-        smooth=false,
-    )
+    diffmodel = κ² isa Number ? FixedDiffusion(κ², false) : FixedMVDiffusion(κ², false)
+    alg = EK1(order=order, diffusionmodel=diffmodel, smooth=false)
 
 
     ########################################################################################
