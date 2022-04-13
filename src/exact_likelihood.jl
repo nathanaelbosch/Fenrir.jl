@@ -1,63 +1,62 @@
 """
-Compute the exact negative log-likelihood (NLL) of data given a problem and algorithm
+Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
+
+This is a convenience function that
+1. Solves the ODE with a `ProbNumDiffEq.EK1` of the specified order and with a diffusion
+   as provided by the `diffusion_var` argument, and
+2. Fits the ODE posterior to the data via Kalman filtering and computes the negative
+   log-likelihood on the way.
+
+Returns a tuple `(nll::Real, times::Vector{Real}, states::StructVector{Gaussian})`;
+`states.μ` contains the posterior means, `states.Σ` the posterior covariances.
 """
-function exact_nll(
+function nll(
     ode_problem::ODEProblem,
-    data,
-    observation_noise_var,
-    diffusion_var,
-    ;
+    data::NamedTuple{(:t, :u)},
+    observation_noise_var::Real,
+    diffusion_var::Real;
     adaptive=false,
     dt=false,
     proj=I,
-    order=5,
+    order=5::Int,
     tstops=[],
-    )
-    N = length(data.u)
-    D = length(ode_problem.u0)
-    E = length(data.u[1])
-    P = length(ode_problem.p)
-
-    σ² = observation_noise_var
-
+)
+    # Set up the solver with the provided diffusion
     κ² = diffusion_var
     diffmodel = κ² isa Number ? FixedDiffusion(κ², false) : FixedMVDiffusion(κ², false)
     alg = EK1(order=order, diffusionmodel=diffmodel, smooth=false)
 
-
-    ########################################################################################
-    # Part 1: Forward-solve the ODE
-    ########################################################################################
+    # Create an `integrator` object, and solve the ODE
     integ = init(
         ode_problem,
         alg,
         dense=false,
         tstops=union(data.t, tstops),
-        adaptive=adaptive, dt=dt,
-        # abstol=1e-9, reltol=1e-9,
-        # save_everystep=true, saveat=data.t,
+        adaptive=adaptive,
+        dt=dt,
     )
     sol = solve!(integ)
 
     if sol.retcode != :Success
-        # What should be done if the solver does not succeed? Raise error? Return large NLL?
         @error "The PN ODE solver did not succeed!"
-        # error()
         return Inf * one(eltype(integ.p)), sol.t, sol.pu
     end
 
-    ########################################################################################
-    # Part 2: Backwards-iterate: Compute the NLL and condition on the data
-    ########################################################################################
-    NLL, times, states = backwards_iterate!(integ, sol, observation_noise_var, data; proj=proj)
-    # Finally, project the state estimates to the zeroth derivative for plotting purposes
+    # Fit the ODE solution / PN posterior to the provided data; this is the actual Fenrir
+    NLL, times, states =
+        fit_pnsolution_to_data!(integ, sol, observation_noise_var, data; proj=proj)
     u_probs = project_to_solution_space!(integ.sol.pu, states, integ.cache.SolProj)
-    return NLL, times, u_probs
 
+    return NLL, times, u_probs
 end
-function backwards_iterate!(integ, sol,
-                           observation_noise_var,
-                           data; proj=I)
+
+function fit_pnsolution_to_data!(
+    integ::ProbNumDiffEq.OrdinaryDiffEq.ODEIntegrator{<:ProbNumDiffEq.AbstractEK},
+    sol::ProbNumDiffEq.AbstractProbODESolution,
+    observation_noise_var::Real,
+    data::NamedTuple{(:t, :u)};
+    proj=I,
+)
     N = length(data.u)
     D = length(integ.u)
     E = length(data.u[1])
@@ -80,7 +79,15 @@ function backwards_iterate!(integ, sol,
 
     # First update on the last data point
     if sol.t[end] in data.t
-        NLL += compute_nll_and_update!(x_smooth[end], data.u[end], H, R, m_tmp, ZERO_DATA, integ.cache)
+        NLL += compute_nll_and_update!(
+            x_smooth[end],
+            data.u[end],
+            H,
+            R,
+            m_tmp,
+            ZERO_DATA,
+            integ.cache,
+        )
     end
 
     # Now iterate backwards
@@ -97,7 +104,15 @@ function backwards_iterate!(integ, sol,
 
         if sol.t[i] in data.t
             data_idx = findfirst(x -> x == sol.t[i], data.t)[1]::Int64
-            NLL += compute_nll_and_update!(xs, data.u[data_idx], H, R, m_tmp, ZERO_DATA, integ.cache)
+            NLL += compute_nll_and_update!(
+                xs,
+                data.u[data_idx],
+                H,
+                R,
+                m_tmp,
+                ZERO_DATA,
+                integ.cache,
+            )
         end
     end
 
@@ -108,7 +123,7 @@ function get_lowerdim_measurement_cache(m_tmp, E)
     _z, _S = m_tmp
     return Gaussian(
         view(_z, 1:E),
-        SRMatrix(view(_S.squareroot, 1:E, :), view(_S.mat, 1:E, 1:E))
+        SRMatrix(view(_S.squareroot, 1:E, :), view(_S.mat, 1:E, 1:E)),
     )
 end
 
@@ -141,7 +156,6 @@ function project_to_solution_space!(u_probs, states, projmat)
     return u_probs
 end
 
-
 function get_initial_diff(prob, noisy_ode_data, tsteps, proj=I)
     N = length(tsteps)
     E = length(noisy_ode_data[1])
@@ -162,8 +176,8 @@ function get_initial_diff(prob, noisy_ode_data, tsteps, proj=I)
     x.μ .= 0
     D, _ = size(x.Σ)
     σ = 1e2
-    x.Σ.squareroot .= σ*I(D)
-    x.Σ.mat .= σ^2*I(D)
+    x.Σ.squareroot .= σ * I(D)
+    x.Σ.mat .= σ^2 * I(D)
 
     t0 = prob.tspan[1]
     asdf = zero(eltype(x.μ))

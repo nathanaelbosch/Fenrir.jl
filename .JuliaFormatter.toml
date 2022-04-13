@@ -1,0 +1,5 @@
+# style = "blue"
+remove_extra_newlines = true
+always_for_in = true
+import_to_using = true
+whitespace_in_kwargs = false

@@ -1,12 +1,29 @@
-# Fenrir
+# Fenrir: Physics-Enhanced Regression for IVPs
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nathanaelbosch.github.io/Fenrir.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nathanaelbosch.github.io/Fenrir.jl/dev)
 [![Build Status](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/nathanaelbosch/Fenrir.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/nathanaelbosch/Fenrir.jl)
 
+This package exports a single function, `fenrir_nll`, with the following docstring:
+```
+Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
 
-Here is a minimal example to show how the code works:
+This is a convenience function that
+
+  1. Solves the ODE with a ProbNumDiffEq.EK1 of the specified order and
+     with a diffusion as provided by the diffusion_var argument, and
+
+  2. Fits the ODE posterior to the data via Kalman filtering and computes
+     the negative log-likelihood on the way.
+
+Returns a tuple (nll::Real, times::Vector{Real}, states::StructVector{Gaussian});
+states.μ contains the posterior means, states.Σ the posterior covariances.
+```
+
+
+### Minimal example
+Fit data from a FitzHugh-Nagumo model
 ```julia
 using ProbNumDiffEq, Plots, LinearAlgebra, Fenrir
 
@@ -37,7 +54,7 @@ plot!(solwrong, color=2, label=["Wrong solution" ""])
 data = (t=times, u=odedata);
 σ² = 1e-3
 κ² = 1e30
-nll, ts, states = exact_nll(remake(prob, p=pwrong), data, σ², κ²)
+nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
 
 means = ProbNumDiffEq.stack([x.μ for x in states]);
 stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);
