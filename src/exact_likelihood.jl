@@ -43,7 +43,7 @@ function exact_nll(
         # What should be done if the solver does not succeed? Raise error? Return large NLL?
         @error "The PN ODE solver did not succeed!"
         # error()
-        return 1e10 * one(eltype(integ.p)), sol.t, sol.pu
+        return Inf * one(eltype(integ.p)), sol.t, sol.pu
     end
 
     ########################################################################################
