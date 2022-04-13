@@ -18,7 +18,7 @@ function nll(
     adaptive=false,
     dt=false,
     proj=I,
-    order=5::Int,
+    order=3::Int,
     tstops=[],
 )
     # Set up the solver with the provided diffusion
