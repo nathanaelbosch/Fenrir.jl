@@ -121,17 +121,14 @@ end
 
 function get_lowerdim_measurement_cache(m_tmp, E)
     _z, _S = m_tmp
-    return Gaussian(
-        view(_z, 1:E),
-        SRMatrix(view(_S.squareroot, 1:E, :), view(_S.mat, 1:E, 1:E)),
-    )
+    return Gaussian(view(_z, 1:E), PSDMatrix(view(_S.R, :, 1:E)))
 end
 
 function measure!(x, H, R, m_tmp)
     z, S = m_tmp
     mul!(z, H, x.μ)
     ProbNumDiffEq.X_A_Xt!(S, x.Σ, H)
-    _S = S.mat .+= R
+    _S = Matrix(S) .+= R
     return Gaussian(z, Symmetric(_S))
 end
 function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
@@ -142,9 +139,13 @@ function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
 
     @unpack K1, K2, x_tmp2, m_tmp = cache
     d = length(u)
-    KC, MC, SC = view(K1, :, 1:d), x_tmp2.Σ.mat, view(m_tmp.Σ.mat, 1:d, 1:d)
+    # KC, MC, SC = view(K1, :, 1:d), x_tmp2.Σ.mat, view(m_tmp.Σ.mat, 1:d, 1:d)
     xout = cache.x_tmp
-    ProbNumDiffEq.update!(xout, x, msmnt, H, KC, MC, SC)
+    # ProbNumDiffEq.update!(xout, x, msmnt, H, KC, MC, SC)
+
+    @unpack K1, K2, x_tmp2, m_tmp, C_DxD = cache
+    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, C_DxD, cache.C_dxd)
+
     copy!(x, xout)
     return nll
 end
