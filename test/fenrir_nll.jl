@@ -26,7 +26,7 @@ solwrong = solve(remake(prob, p=pwrong), EK1(smooth=false), dense=false);
 data = (t=times, u=odedata);
 σ² = 1e-3
 κ² = 1e30
-nll, ts, states = nll(remake(prob, p=pwrong), data, σ², κ²)
+nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
 
 means = ProbNumDiffEq.stack([x.μ for x in states]);
 stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);

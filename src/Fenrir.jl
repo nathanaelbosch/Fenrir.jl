@@ -8,6 +8,6 @@ using ProbNumDiffEq: X_A_Xt, _gaussian_mul!
 using UnPack
 
 include("likelihood.jl")
-export nll
+export fenrir_nll
 
 end

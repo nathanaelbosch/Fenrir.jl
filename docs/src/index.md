@@ -10,5 +10,5 @@ CurrentModule = Fenrir
 ```
 
 ```@docs
-nll
+fenrir_nll
 ```

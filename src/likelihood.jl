@@ -1,5 +1,5 @@
 """
-    nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
+    fenrir_nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
         diffusion_var::Real; adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
 
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
@@ -32,7 +32,7 @@ Returns a tuple `(nll::Real, times::Vector{Real}, states::StructVector{Gaussian}
 - `order::Int=3`: the order of the `ProbNumDiffEq.EK1` solver
 - `proj=I`: the matrix which maps the ODE state to the measurements; typically a projection
 """
-function nll(
+function fenrir_nll(
     prob::ODEProblem,
     data::NamedTuple{(:t, :u)},
     observation_noise_var::Real,

@@ -54,7 +54,7 @@ scatter!(times, stack(odedata), markersize=2, markerstrokewidth=0.1, color=1, la
 
 ## Computing the negative log-likelihood
 To evaluate the likelihood given a parameter estimate ``\theta_\text{est}``,
-we just need to call `nll`:
+we just need to call `fenrir_nll`:
 ```@example 1
 p_est = (0.1, 0.1, 2.0)
 prob = remake(true_prob, p=p_est)

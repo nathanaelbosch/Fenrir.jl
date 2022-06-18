@@ -5,9 +5,9 @@
 [![Build Status](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/nathanaelbosch/Fenrir.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/nathanaelbosch/Fenrir.jl)
 
-This package exports a single function, `nll`:
+This package exports a single function, `fenrir_nll`:
 ```
-    nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
+    fenrir_nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
         diffusion_var::Real; adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
 
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
@@ -48,7 +48,7 @@ plot!(solwrong, color=2, label=["Wrong solution" ""])
 data = (t=times, u=odedata);
 σ² = 1e-3
 κ² = 1e30
-nll, ts, states = nll(remake(prob, p=pwrong), data, σ², κ²)
+nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
 
 means = ProbNumDiffEq.stack([x.μ for x in states]);
 stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);

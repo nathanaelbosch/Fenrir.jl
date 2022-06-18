@@ -3,7 +3,7 @@ using Test
 using SafeTestsets
 
 @testset "Fenrir.jl" begin
-    @safetestset "nll" begin
-        include("nll.jl")
+    @safetestset "fenrir_nll" begin
+        include("fenrir_nll.jl")
     end
 end
