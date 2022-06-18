@@ -5,21 +5,15 @@
 [![Build Status](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/nathanaelbosch/Fenrir.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/nathanaelbosch/Fenrir.jl)
 
-This package exports a single function, `nll`, with the following docstring:
+This package exports a single function, `nll`:
 ```
+    nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
+        diffusion_var::Real; adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
+
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
-
-This is a convenience function that
-
-  1. Solves the ODE with a ProbNumDiffEq.EK1 of the specified order and
-     with a diffusion as provided by the diffusion_var argument, and
-
-  2. Fits the ODE posterior to the data via Kalman filtering and computes
-     the negative log-likelihood on the way.
-
-Returns a tuple (nll::Real, times::Vector{Real}, states::StructVector{Gaussian});
-states.μ contains the posterior means, states.Σ the posterior covariances.
 ```
+To see the full docstring, check out the
+[documentation](https://nathanaelbosch.github.io/Fenrir.jl/stable).
 
 
 ### Minimal example
