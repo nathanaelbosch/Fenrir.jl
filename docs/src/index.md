@@ -4,11 +4,11 @@ CurrentModule = Fenrir
 
 # Fenrir
 
-Documentation for [Fenrir](https://github.com/nathanaelbosch/Fenrir.jl).
+[Fenrir](https://github.com/nathanaelbosch/Fenrir.jl) exports just a single function:
 
 ```@index
 ```
 
-```@autodocs
-Modules = [Fenrir]
+```@docs
+nll
 ```

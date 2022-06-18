@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/nathanaelbosch/Fenrir.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/nathanaelbosch/Fenrir.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/nathanaelbosch/Fenrir.jl)
 
-This package exports a single function, `fenrir_nll`, with the following docstring:
+This package exports a single function, `nll`, with the following docstring:
 ```
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
 
@@ -54,7 +54,7 @@ plot!(solwrong, color=2, label=["Wrong solution" ""])
 data = (t=times, u=odedata);
 σ² = 1e-3
 κ² = 1e30
-nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
+nll, ts, states = nll(remake(prob, p=pwrong), data, σ², κ²)
 
 means = ProbNumDiffEq.stack([x.μ for x in states]);
 stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);

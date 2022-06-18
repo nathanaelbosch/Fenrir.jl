@@ -1,40 +1,57 @@
 """
+    nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
+        diffusion_var::Real; adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
+
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
 
 This is a convenience function that
 1. Solves the ODE with a `ProbNumDiffEq.EK1` of the specified order and with a diffusion
    as provided by the `diffusion_var` argument, and
-2. Fits the ODE posterior to the data via Kalman filtering and computes the negative
+2. Fits the ODE posterior to the data via Kalman filtering and thereby computes the negative
    log-likelihood on the way.
 
-Returns a tuple `(nll::Real, times::Vector{Real}, states::StructVector{Gaussian})`;
-`states.μ` contains the posterior means, `states.Σ` the posterior covariances.
+By default, the solver steps exactly through the time points `data.t`. In addition, you can
+provide a step size with `dt` or time stops with `tstops`.
+Or, set `adaptive=true` for adaptive step-size selection - use at your own risk!
+
+Returns a tuple `(nll::Real, times::Vector{Real}, states::StructVector{Gaussian})`, where
+`states` contains the filtering posterior. Its mean and covariance can be accessed with
+`states.μ` and `states.Σ`.
+
+# Arguments
+- `prob::ODEProblem`: the initial value problem of interest
+- `data::NamedTyple{{(:t, :u)}}`: the data to be fitted
+- `observation_noise_var::Real`: the scalar observation noise variance
+- `diffusion_var`: the diffusion parameter for the integrated Wiener process prior;
+  this plays a similar role as kernel hyperparamers in Gaussian-process regression
+- `dt=false`: step size parameter, passed to `OrdinaryDiffEq.init`
+- `adaptive=false`: flag to determine if adaptive step size selection should be used;
+  use at your own risk!
+- `tstops=[]`: additional time stops the algorithm should step through; passed to
+  `OrdinaryDiffEq.solve`
+- `order::Int=3`: the order of the `ProbNumDiffEq.EK1` solver
+- `proj=I`: the matrix which maps the ODE state to the measurements; typically a projection
 """
 function nll(
-    ode_problem::ODEProblem,
+    prob::ODEProblem,
     data::NamedTuple{(:t, :u)},
     observation_noise_var::Real,
     diffusion_var::Real;
-    adaptive=false,
     dt=false,
-    proj=I,
-    order=3::Int,
+    adaptive::Bool=false,
     tstops=[],
+    order=3::Int,
+    proj=I,
 )
+
     # Set up the solver with the provided diffusion
     κ² = diffusion_var
     diffmodel = κ² isa Number ? FixedDiffusion(κ², false) : FixedMVDiffusion(κ², false)
     alg = EK1(order=order, diffusionmodel=diffmodel, smooth=false)
 
     # Create an `integrator` object, and solve the ODE
-    integ = init(
-        ode_problem,
-        alg,
-        dense=false,
-        tstops=union(data.t, tstops),
-        adaptive=adaptive,
-        dt=dt,
-    )
+    integ =
+        init(prob, alg, dense=false, tstops=union(data.t, tstops), adaptive=adaptive, dt=dt)
     sol = solve!(integ)
 
     if sol.retcode != :Success

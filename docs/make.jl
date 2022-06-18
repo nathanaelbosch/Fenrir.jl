@@ -18,7 +18,4 @@ makedocs(;
     ],
 )
 
-deploydocs(;
-    repo="github.com/nathanaelbosch/Fenrir.jl",
-    devbranch="main",
-)
+deploydocs(; repo="github.com/nathanaelbosch/Fenrir.jl", devbranch="main")
