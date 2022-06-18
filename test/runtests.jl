@@ -2,5 +2,7 @@ using Fenrir
 using Test
 
 @testset "Fenrir.jl" begin
-    # Write your tests here.
+    @safetestset "nll" begin
+        include("nll.jl")
+    end
 end
