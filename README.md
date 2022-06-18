@@ -35,7 +35,7 @@ prob = ODEProblem(f, u0, tspan, p)
 # Generate data:
 true_sol = solve(prob, EK1())
 times = 1:0.1:20
-odedata = true_sol(times).u.μ
+odedata = [u + 0.1*randn(size(u)) for u in true_sol(times).u.μ]
 scatter(times, ProbNumDiffEq.stack(odedata), markersize=2, markerstrokewidth=0.1,
         color=1, label=["Data" ""])
 
@@ -46,7 +46,7 @@ plot!(solwrong, color=2, label=["Wrong solution" ""])
 
 # Fenrir:
 data = (t=times, u=odedata);
-σ² = 1e-3
+σ² = 1e-1
 κ² = 1e30
 nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
 
@@ -59,5 +59,6 @@ plot!(ts, means, ribbon=2stddevs,
 
 println("Negative log-likelihood: $nll")
 ```
+![README Demo](./docs/src/readmedemo.svg?raw=true "README Demo")
 
 Prints: `Negative log-likelihood: 5849.3096741464615`
