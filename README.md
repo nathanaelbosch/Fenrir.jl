@@ -62,3 +62,21 @@ println("Negative log-likelihood: $nll")
 ![README Demo](./docs/src/readmedemo.svg?raw=true "README Demo")
 
 Prints: `Negative log-likelihood: 5849.3096741464615`
+
+You can use this NLL it as any other NLL:
+Optimize it to compute maximum-likelihood estimates or MAPs,
+or plug it into MCMC to sample from the posterior.
+In [our paper](https://arxiv.org/abs/2202.01287) we compute MLEs by pairing Fenrir with [Optimization.jl](http://optimization.sciml.ai/stable/) and [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/stable/).
+
+
+
+## Reference
+```
+@misc{https://doi.org/10.48550/arxiv.2202.01287,
+  title = {Fenrir: Physics-Enhanced Regression for Initial Value Problems},
+  author = {Tronarp, Filip and Bosch, Nathanael and Hennig, Philipp},
+  publisher = {arXiv},
+  year = {2022},
+  url = {https://arxiv.org/abs/2202.01287},
+}
+```
