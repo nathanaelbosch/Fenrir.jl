@@ -1,5 +1,6 @@
 using Fenrir
 using Test
+using SafeTestsets
 
 @testset "Fenrir.jl" begin
     @safetestset "nll" begin
