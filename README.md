@@ -16,8 +16,7 @@ To see the full docstring, check out the
 [documentation](https://nathanaelbosch.github.io/Fenrir.jl/stable).
 
 
-### Minimal example
-Fit data from a FitzHugh-Nagumo model
+### Minimal example: Parameter likelihood on FitzHugh-Nagumo
 ```julia
 using ProbNumDiffEq, Plots, LinearAlgebra, Fenrir
 
