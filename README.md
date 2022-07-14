@@ -70,12 +70,21 @@ In [our paper](https://arxiv.org/abs/2202.01287) we compute MLEs by pairing Fenr
 
 
 ## Reference
+This method has been developed in the paper "Fenrir: Physics-Enhanced Regression for Initial Value Problems" by Tronarp et al, published at ICML 2022 ([link](https://proceedings.mlr.press/v162/tronarp22a.html)).
 ```
-@misc{https://doi.org/10.48550/arxiv.2202.01287,
-  title = {Fenrir: Physics-Enhanced Regression for Initial Value Problems},
-  author = {Tronarp, Filip and Bosch, Nathanael and Hennig, Philipp},
-  publisher = {arXiv},
-  year = {2022},
-  url = {https://arxiv.org/abs/2202.01287},
+
+@InProceedings{pmlr-v162-tronarp22a,
+  title = 	 {Fenrir: Physics-Enhanced Regression for Initial Value Problems},
+  author =       {Tronarp, Filip and Bosch, Nathanael and Hennig, Philipp},
+  booktitle = 	 {Proceedings of the 39th International Conference on Machine Learning},
+  pages = 	 {21776--21794},
+  year = 	 {2022},
+  editor = 	 {Chaudhuri, Kamalika and Jegelka, Stefanie and Song, Le and Szepesvari, Csaba and Niu, Gang and Sabato, Sivan},
+  volume = 	 {162},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {17--23 Jul},
+  publisher =    {PMLR},
+  pdf = 	 {https://proceedings.mlr.press/v162/tronarp22a/tronarp22a.pdf},
+  url = 	 {https://proceedings.mlr.press/v162/tronarp22a.html}
 }
 ```
