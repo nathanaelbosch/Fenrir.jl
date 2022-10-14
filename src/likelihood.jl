@@ -36,7 +36,7 @@ function fenrir_nll(
     prob::ODEProblem,
     data::NamedTuple{(:t, :u)},
     observation_noise_var::Real,
-    diffusion_var::Real;
+    diffusion_var::Union{Real, Vector{<:Real}};
     dt=false,
     adaptive::Bool=false,
     tstops=[],
