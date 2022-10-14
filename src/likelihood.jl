@@ -154,14 +154,14 @@ function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
     nll = -logpdf(msmnt, ZERO_DATA)
     # copy!(x, ProbNumDiffEq.update(x, msmnt, H))
 
-    @unpack K1, K2, x_tmp2, m_tmp = cache
+    @unpack K1, x_tmp2, m_tmp = cache
     d = length(u)
     # KC, MC, SC = view(K1, :, 1:d), x_tmp2.Σ.mat, view(m_tmp.Σ.mat, 1:d, 1:d)
     xout = cache.x_tmp
     # ProbNumDiffEq.update!(xout, x, msmnt, H, KC, MC, SC)
 
-    @unpack K1, K2, x_tmp2, m_tmp, C_DxD = cache
-    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, C_DxD, cache.C_dxd)
+    @unpack K1, x_tmp2, m_tmp, C_DxD = cache
+    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, copy(K1), C_DxD, copy(K1), cache.C_dxd)
 
     copy!(x, xout)
     return nll
@@ -183,7 +183,7 @@ function get_initial_diff(prob, noisy_ode_data, tsteps, proj=I)
 
     @unpack P, PI, A, Q, Ah, Qh = integ.cache
     @unpack measurement, x_filt, x_pred = integ.cache
-    @unpack K1, K2, x_tmp2, m_tmp = integ.cache
+    @unpack K1, x_tmp2, m_tmp = integ.cache
 
     m_tmp = get_lowerdim_measurement_cache(m_tmp, E)
     measurement = get_lowerdim_measurement_cache(measurement, E)
