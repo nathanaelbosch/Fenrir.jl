@@ -8,7 +8,8 @@
 This package exports a single function, `fenrir_nll`:
 ```
     fenrir_nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
-        diffusion_var::Real; adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
+        diffusion_var::Union{Real,Vector{<:Real}};
+        adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
 
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
 ```
