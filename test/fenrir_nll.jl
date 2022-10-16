@@ -30,3 +30,11 @@ nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
 
 means = ProbNumDiffEq.stack([x.μ for x in states]);
 stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);
+
+####
+# Vector-valued diffusion
+κ² = 1e30 * ones(length(u0))
+nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
+
+means = ProbNumDiffEq.stack([x.μ for x in states]);
+stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);
