@@ -1,6 +1,7 @@
 """
     fenrir_nll(prob::ODEProblem, data::NamedTuple{(:t, :u)}, observation_noise_var::Real,
-        diffusion_var::Real; adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
+        diffusion_var::Union{Real,Vector{<:Real}};
+        adaptive=false, dt=false,  proj=I, order=3::Int, tstops=[])
 
 Compute the "Fenrir" approximate negative log-likelihood (NLL) of the data.
 
@@ -36,7 +37,7 @@ function fenrir_nll(
     prob::ODEProblem,
     data::NamedTuple{(:t, :u)},
     observation_noise_var::Real,
-    diffusion_var::Real;
+    diffusion_var::Union{Real,Vector{<:Real}};
     dt=false,
     adaptive::Bool=false,
     tstops=[],

@@ -20,13 +20,30 @@ odedata = true_sol(times).u.μ
 
 # With the wrong parameters:
 pwrong = (0.1, 0.1, 2.0)
-solwrong = solve(remake(prob, p=pwrong), EK1(smooth=false), dense=false);
+# solwrong = solve(remake(prob, p=pwrong), EK1(smooth=false), dense=false);
 
 # Fenrir:
 data = (t=times, u=odedata);
 σ² = 1e-3
-κ² = 1e30
-nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
 
-means = ProbNumDiffEq.stack([x.μ for x in states]);
-stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states]);
+@testset "Scalar diffusion" begin
+    κ² = 1e30
+    nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
+    @test nll isa Number
+    @test ts isa Vector{<:Number}
+    @test states isa StructVector{<:Gaussian}
+
+    means = ProbNumDiffEq.stack([x.μ for x in states])
+    stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states])
+end
+
+@testset "Vector-valued diffusion" begin
+    κ² = 1e30 * ones(length(u0))
+    nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
+    @test nll isa Number
+    @test ts isa Vector{<:Number}
+    @test states isa StructVector{<:Gaussian}
+
+    means = ProbNumDiffEq.stack([x.μ for x in states])
+    stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states])
+end
