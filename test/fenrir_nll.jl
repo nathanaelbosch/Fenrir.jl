@@ -13,10 +13,12 @@ tspan = (0.0, 20.0)
 p = (0.2, 0.2, 3.0)
 prob = ODEProblem(f, u0, tspan, p)
 
+proj = [1 0]
+
 # Generate data:
 true_sol = solve(prob, EK1())
 times = 1:0.1:20
-odedata = true_sol(times).u.μ
+odedata = [proj * true_sol(t).μ for t in times]
 
 # With the wrong parameters:
 pwrong = (0.1, 0.1, 2.0)
@@ -28,7 +30,7 @@ data = (t=times, u=odedata);
 
 @testset "Scalar diffusion" begin
     κ² = 1e30
-    nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
+    nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ², proj=proj)
     @test nll isa Number
     @test ts isa Vector{<:Number}
     @test states isa StructVector{<:Gaussian}
@@ -39,7 +41,7 @@ end
 
 @testset "Vector-valued diffusion" begin
     κ² = 1e30 * ones(length(u0))
-    nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ²)
+    nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ², proj=proj)
     @test nll isa Number
     @test ts isa Vector{<:Number}
     @test states isa StructVector{<:Gaussian}
