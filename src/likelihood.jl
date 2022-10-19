@@ -161,8 +161,10 @@ function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
     xout = cache.x_tmp
     # ProbNumDiffEq.update!(xout, x, msmnt, H, KC, MC, SC)
 
-    @unpack K1, K2, x_tmp2, m_tmp, C_DxD = cache
-    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, C_DxD, cache.C_dxd)
+    @unpack K2, x_tmp2, m_tmp, C_DxD = cache
+    C_dxd = view(cache.C_dxd, 1:d, 1:d)
+    K_cache = view(cache.K1, :, 1:d)
+    ProbNumDiffEq.update!(xout, x, msmnt, H, K_cache, C_DxD, C_dxd)
 
     copy!(x, xout)
     return nll
