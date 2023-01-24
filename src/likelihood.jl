@@ -55,8 +55,8 @@ function fenrir_nll(
         init(prob, alg, dense=false, tstops=union(data.t, tstops), adaptive=adaptive, dt=dt)
     sol = solve!(integ)
 
-    if sol.retcode != :Success
-        @error "The PN ODE solver did not succeed!"
+    if sol.retcode != :Success && sol.retcode != :Default
+        @error "The PN ODE solver did not succeed!" sol.retcode
         return Inf * one(eltype(integ.p)), sol.t, sol.pu
     end
 
