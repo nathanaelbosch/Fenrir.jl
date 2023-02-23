@@ -17,7 +17,7 @@ proj = [1 0]
 
 # Generate data:
 true_sol = solve(prob, EK1())
-times = 1:0.1:20
+times = 0.1:0.1:20
 odedata = [proj * true_sol(t).μ for t in times]
 
 # With the wrong parameters:
