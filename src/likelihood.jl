@@ -165,7 +165,7 @@ function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
     C_dxd = view(cache.C_dxd, 1:d, 1:d)
     K1 = view(cache.K1, :, 1:d)
     K2 = view(cache.C_Dxd, :, 1:d)
-    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, K2, C_DxD, C_dxd, C_dxd)
+    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, K2, C_DxD, C_dxd)
 
     copy!(x, xout)
     return nll
