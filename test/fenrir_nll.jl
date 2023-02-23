@@ -32,6 +32,7 @@ data = (t=times, u=odedata);
     κ² = 1e30
     nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ², proj=proj)
     @test nll isa Number
+    @test !isinf(nll)
     @test ts isa Vector{<:Number}
     @test states isa StructVector{<:Gaussian}
 
@@ -43,6 +44,7 @@ end
     κ² = 1e30 * ones(length(u0))
     nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, σ², κ², proj=proj)
     @test nll isa Number
+    @test !isinf(nll)
     @test ts isa Vector{<:Number}
     @test states isa StructVector{<:Gaussian}
 
