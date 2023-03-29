@@ -21,7 +21,7 @@ Returns a tuple `(nll::Real, times::Vector{Real}, states::StructVector{Gaussian}
 
 # Arguments
 - `prob::ODEProblem`: the initial value problem of interest
-- `data::NamedTyple{{(:t, :u)}}`: the data to be fitted
+- `data::NamedTuple{{(:t, :u)}}`: the data to be fitted
 - `observation_noise_var::Real`: the scalar observation noise variance
 - `diffusion_var`: the diffusion parameter for the integrated Wiener process prior;
   this plays a similar role as kernel hyperparamers in Gaussian-process regression
