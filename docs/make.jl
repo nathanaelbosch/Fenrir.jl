@@ -18,6 +18,6 @@ makedocs(;
 
 deploydocs(
     repo="github.com/nathanaelbosch/Fenrir.jl",
-    devbranch="main"
+    devbranch="main",
     push_preview=true,
 )
