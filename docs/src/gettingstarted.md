@@ -1,14 +1,16 @@
 # Computing Approximate Likelihoods with Probabilistic Numerics and Fenrir.jl
 
-```@example 1
+
+```@example fenrir
 using LinearAlgebra
 using OrdinaryDiffEq, ProbNumDiffEq, Plots
 using Fenrir
+using Optimization, OptimizationOptimJL
 stack(x) = copy(reduce(hcat, x)') # convenient
 nothing # hide
 ```
 
-## The problem statement as math
+## The parameter inference problem in general
 Let's assume we have an initial value problem (IVP)
 ```math
 \begin{aligned}
@@ -27,9 +29,9 @@ What we can do however is compute an approximate marginal likelihood.
 This is what Fenrir.jl provides.
 For details, check out the [paper](https://arxiv.org/abs/2202.01287).
 
-## The setup, in code
+## The specific problem, in code
 Let's assume that the true underlying dynamics are given by a FitzHugh-Nagumo model
-```@example 1
+```@example fenrir
 function f(du, u, p, t)
     a, b, c = p
     du[1] = c*(u[1] - u[1]^3/3 + u[2])
@@ -41,7 +43,7 @@ p = (0.2, 0.2, 3.0)
 true_prob = ODEProblem(f, u0, tspan, p)
 ```
 from which we generate some artificial noisy data
-```@example 1
+```@example fenrir
 true_sol = solve(true_prob, Vern9(), abstol=1e-10, reltol=1e-10)
 
 times = 1:0.5:20
@@ -53,9 +55,9 @@ scatter!(times, stack(odedata), markersize=2, markerstrokewidth=0.1, color=1, la
 ```
 
 ## Computing the negative log-likelihood
-To evaluate the likelihood given a parameter estimate ``\theta_\text{est}``,
-we just need to call `fenrir_nll`:
-```@example 1
+To do parameter inference - be it maximum-likelihod, maximum a posteriori, or full Bayesian inference with MCMC - we need to evaluate the likelihood of given a parameter estimate ``\theta_\text{est}``.
+This is exactly what Fenrir.jl's [`fenrir_nll`](@ref) provides:
+```@example fenrir
 p_est = (0.1, 0.1, 2.0)
 prob = remake(true_prob, p=p_est)
 data = (t=times, u=odedata)
@@ -63,7 +65,52 @@ data = (t=times, u=odedata)
 nll, _, _ = fenrir_nll(prob, data, observation_noise_var, κ²; dt=1e-1)
 nll
 ```
-Voilà! This is the marginal negative log-likelihood!
-
+This is the negative marginal log-likelihood of the parameter `p_est`.
 You can use it as any other NLL: Optimize it to compute maximum-likelihood estimates or MAPs, or plug it into MCMC to sample from the posterior.
 In [our paper](https://arxiv.org/abs/2202.01287) we compute MLEs by pairing Fenrir with [Optimization.jl](http://optimization.sciml.ai/stable/) and [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/stable/).
+Let's quickly explore how to do this.
+
+
+## Maximum-likelihood parameter inference
+
+To compute a maximum-likelihood estimate (MLE), we just need to maximize ``\theta \to p(\mathcal{D} \mid \theta)`` - that is, minimize the `nll` from above.
+We use [Optimization.jl](https://docs.sciml.ai/Optimization/stable/) for this.
+First, fefine a loss function and create an `OptimizationProblem`
+```@example fenrir
+function loss(x, _)
+    ode_params = x[begin:end-1]
+    prob = remake(true_prob, p=ode_params)
+    κ² = exp(x[end]) # the diffusion parameter of the EK1
+    return fenrir_nll(prob, data, observation_noise_var, κ²; dt=1e-1)
+end
+
+fun = OptimizationFunction(loss, Optimization.AutoForwardDiff())
+optprob = OptimizationProblem(
+    fun, [p_est..., 1e0];
+    lb=[0.0, 0.0, 0.0, -10], ub=[1.0, 1.0, 5.0, 20]
+)
+```
+
+Then, just `solve` it! Here we use LBFGS:
+```@example fenrir
+optsol = solve(optprob, LBFGS())
+p_mle = optsol.u[1:3]
+p_mle # hide
+```
+
+That's it! The computed MLE is very close to the true parameter which we used to generate the data.
+As a final step, let's plot the true solution, the data, and the result of the MLE:
+
+```@example fenrir
+plot(true_sol, color=:black, linestyle=:dash, label=["True Solution" ""])
+scatter!(times, stack(odedata), markersize=2, markerstrokewidth=0.1, color=1, label=["Noisy Data" ""])
+mle_sol = solve(remake(true_prob, p=p_mle), EK1())
+plot!(mle_sol, color=3, label=["MLE-parameter Solution" ""])
+```
+
+Looks good!
+
+
+#### References
+
+[1] F.Tronarp, N. Bosch, P. Hennig: **Fenrir: Fenrir: Physics-Enhanced Regression for Initial Value Problems** (2022)

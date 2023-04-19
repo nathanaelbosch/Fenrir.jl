@@ -67,6 +67,7 @@ You can use this NLL it as any other NLL:
 Optimize it to compute maximum-likelihood estimates or MAPs,
 or plug it into MCMC to sample from the posterior.
 In [our paper](https://arxiv.org/abs/2202.01287) we compute MLEs by pairing Fenrir with [Optimization.jl](http://optimization.sciml.ai/stable/) and [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/stable/).
+Check out the [documentation](https://nathanaelbosch.github.io/Fenrir.jl/stable/) for more details on how to do this.
 
 
 

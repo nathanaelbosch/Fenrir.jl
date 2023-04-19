@@ -16,4 +16,8 @@ makedocs(;
     pages=["Home" => "index.md", "Fenrr.jl in a nutshell" => "gettingstarted.md"],
 )
 
-deploydocs(; repo="github.com/nathanaelbosch/Fenrir.jl", devbranch="main")
+deploydocs(
+    repo="github.com/nathanaelbosch/Fenrir.jl",
+    devbranch="main",
+    push_preview=true,
+)
