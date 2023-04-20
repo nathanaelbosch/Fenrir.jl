@@ -149,6 +149,69 @@ function measure!(x, H, R, m_tmp)
     _S = Matrix(S) .+= R
     return Gaussian(z, Symmetric(_S))
 end
+function update!(
+    x_out::SRGaussian,
+    x_pred::SRGaussian,
+    measurement::Gaussian,
+    R::Diagonal,
+    H::AbstractMatrix,
+    K1_cache::AbstractMatrix,
+    K2_cache::AbstractMatrix,
+    M_cache::AbstractMatrix,
+    C_dxd::AbstractMatrix,
+)
+    z, S = measurement.μ, measurement.Σ
+    m_p, P_p = x_pred.μ, x_pred.Σ
+    @assert P_p isa PSDMatrix || P_p isa Matrix
+    if (P_p isa PSDMatrix && iszero(P_p.R)) || (P_p isa Matrix && iszero(P_p))
+        copy!(x_out, x_pred)
+        return x_out
+    end
+
+    D = length(m_p)
+
+    # K = P_p * H' / S
+    _S = if S isa PSDMatrix
+        _matmul!(C_dxd, S.R', S.R)
+    else
+        copy!(C_dxd, S)
+    end
+
+    K = if P_p isa PSDMatrix
+        _matmul!(K1_cache, P_p.R, H')
+        _matmul!(K2_cache, P_p.R', K1_cache)
+    else
+        _matmul!(K2_cache, P_p, H')
+    end
+
+    S_chol = try
+        cholesky!(_S)
+    catch e
+        if !(e isa PosDefException)
+            throw(e)
+        end
+        @warn "Can't compute the update step with cholesky; using qr instead"
+        @assert S isa PSDMatrix
+        Cholesky(qr(S.R).R, :U, 0)
+    end
+    rdiv!(K, S_chol)
+
+    # x_out.μ .= m_p .+ K * (0 .- z)
+    x_out.μ .= m_p .- _matmul!(x_out.μ, K, z)
+
+    # M_cache .= I(D) .- mul!(M_cache, K, H)
+    _matmul!(M_cache, K, H, -1.0, 0.0)
+    @inbounds @simd ivdep for i in 1:D
+        M_cache[i, i] += 1
+    end
+
+    fast_X_A_Xt!(x_out.Σ, P_p, M_cache)
+
+    out_Sigma_R = [x_out.Σ.R; sqrt.(R) * K']
+    x_out.Σ.R .= qr!(out_Sigma_R).R
+
+    return x_out
+end
 function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
     msmnt = measure!(x, H, R, m_tmp)
     msmnt.μ .-= u
@@ -165,7 +228,7 @@ function compute_nll_and_update!(x, u, H, R, m_tmp, ZERO_DATA, cache)
     C_dxd = view(cache.C_dxd, 1:d, 1:d)
     K1 = view(cache.K1, :, 1:d)
     K2 = view(cache.C_Dxd, :, 1:d)
-    ProbNumDiffEq.update!(xout, x, msmnt, H, K1, K2, C_DxD, C_dxd)
+    update!(xout, x, msmnt, R, H, K1, K2, C_DxD, C_dxd)
 
     copy!(x, xout)
     return nll
@@ -220,7 +283,7 @@ function get_initial_diff(prob, noisy_ode_data, tsteps, proj=I)
         mul!(z, H, x_pred.μ)
         z .-= noisy_ode_data[i]
         ProbNumDiffEq.X_A_Xt!(S, x_pred.Σ, H)
-        ProbNumDiffEq.update!(x, x_pred, measurement, H, K1, x_tmp2.Σ.mat, m_tmp)
+        ProbNumDiffEq.update!(x, x_pred, measurement, R, H, K1, x_tmp2.Σ.mat, m_tmp)
 
         asdf += z' * (S \ z)
     end
