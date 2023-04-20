@@ -88,7 +88,7 @@ end
 fun = OptimizationFunction(loss, Optimization.AutoForwardDiff())
 optprob = OptimizationProblem(
     fun, [p_est..., 1e0];
-    lb=[0.0, 0.0, 0.0, -10], ub=[1.0, 1.0, 5.0, 20]
+    lb=[0.0, 0.0, 0.0, -10], ub=[1.0, 1.0, 5.0, 20] # lower and upper bounds
 )
 ```
 
