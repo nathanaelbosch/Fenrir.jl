@@ -40,7 +40,7 @@ function fenrir_nll(
     diffusion_var::Union{Real,Vector{<:Real}};
     dt=false,
     adaptive::Bool=false,
-    tstops=[],
+    tstops=Float64[],
     order=3::Int,
     proj=I,
 )
