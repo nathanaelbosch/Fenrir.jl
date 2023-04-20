@@ -85,10 +85,7 @@ function fit_pnsolution_to_data!(
 
     measurement_cache = get_lowerdim_measurement_cache(m_tmp, E)
 
-    x_posterior = copy(sol.x_filt)
-    @assert allequal(sol.diffusions) "Diffusions need to be constant right now!"
-    diffusion = sol.diffusions[1]
-
+    x_posterior = copy(sol.x_filt) # the object to be filled
     state2data_projmat = proj * cache.SolProj
     observation_noise = Diagonal(observation_noise_var .* ones(E))
     ZERO_DATA = zeros(E)
@@ -110,8 +107,7 @@ function fit_pnsolution_to_data!(
     data_idx = length(data.u) - 1
     for i in length(x_posterior)-1:-1:1
         # logic closely related to ProbNumDiffEq.jl's `smooth_solution!`
-        dt = sol.t[i+1] - sol.t[i]
-        if iszero(dt)
+        if sol.t[i] == sol.t[i+1]
             copy!(x_posterior[i], x_posterior[i+1])
             continue
         end
@@ -132,6 +128,7 @@ function fit_pnsolution_to_data!(
             data_idx -= 1
         end
     end
+    @assert data_idx == 0 # to make sure we went through all the data
 
     return NLL, sol.t, x_posterior
 end
@@ -143,8 +140,8 @@ end
 
 function measure!(x, H, R, m_tmp)
     z, S = m_tmp
-    mul!(z, H, x.μ)
-    PNDE.X_A_Xt!(S, x.Σ, H)
+    PNDE._matmul!(z, H, x.μ)
+    PNDE.fast_X_A_Xt!(S, x.Σ, H)
     _S = Matrix(S) .+= R
     return Gaussian(z, Symmetric(_S))
 end
@@ -209,7 +206,7 @@ function update!(
 
     if !iszero(R)
         out_Sigma_R = [x_out.Σ.R; sqrt.(R) * K']
-        x_out.Σ.R .= qr!(out_Sigma_R).R
+        x_out.Σ.R .= PNDE.triangularize!(out_Sigma_R; cachemat=M_cache)
     end
 
     return x_out
