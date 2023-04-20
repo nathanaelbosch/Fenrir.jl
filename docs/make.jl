@@ -13,7 +13,7 @@ makedocs(;
         canonical="https://nathanaelbosch.github.io/Fenrir.jl",
         assets=String[],
     ),
-    pages=["Home" => "index.md", "Fenrr.jl in a nutshell" => "gettingstarted.md"],
+    pages=["Home" => "index.md", "How to use Fenrir.jl" => "gettingstarted.md"],
 )
 
 deploydocs(
