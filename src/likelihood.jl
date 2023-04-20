@@ -144,13 +144,14 @@ end
 function measure!(x, H, R, m_tmp)
     z, S = m_tmp
     mul!(z, H, x.μ)
-    ProbNumDiffEq.X_A_Xt!(S, x.Σ, H)
+    PNDE.X_A_Xt!(S, x.Σ, H)
     _S = Matrix(S) .+= R
     return Gaussian(z, Symmetric(_S))
 end
+
 function update!(
-    x_out::SRGaussian,
-    x_pred::SRGaussian,
+    x_out::PNDE.SRGaussian,
+    x_pred::PNDE.SRGaussian,
     measurement::Gaussian,
     R::Diagonal,
     H::AbstractMatrix,
@@ -171,16 +172,16 @@ function update!(
 
     # K = P_p * H' / S
     _S = if S isa PSDMatrix
-        _matmul!(C_dxd, S.R', S.R)
+        PNDE._matmul!(C_dxd, S.R', S.R)
     else
         copy!(C_dxd, S)
     end
 
     K = if P_p isa PSDMatrix
-        _matmul!(K1_cache, P_p.R, H')
-        _matmul!(K2_cache, P_p.R', K1_cache)
+        PNDE._matmul!(K1_cache, P_p.R, H')
+        PNDE._matmul!(K2_cache, P_p.R', K1_cache)
     else
-        _matmul!(K2_cache, P_p, H')
+        PNDE._matmul!(K2_cache, P_p, H')
     end
 
     S_chol = try
@@ -196,18 +197,20 @@ function update!(
     rdiv!(K, S_chol)
 
     # x_out.μ .= m_p .+ K * (0 .- z)
-    x_out.μ .= m_p .- _matmul!(x_out.μ, K, z)
+    x_out.μ .= m_p .- PNDE._matmul!(x_out.μ, K, z)
 
     # M_cache .= I(D) .- mul!(M_cache, K, H)
-    _matmul!(M_cache, K, H, -1.0, 0.0)
+    PNDE._matmul!(M_cache, K, H, -1.0, 0.0)
     @inbounds @simd ivdep for i in 1:D
         M_cache[i, i] += 1
     end
 
-    fast_X_A_Xt!(x_out.Σ, P_p, M_cache)
+    PNDE.fast_X_A_Xt!(x_out.Σ, P_p, M_cache)
 
-    out_Sigma_R = [x_out.Σ.R; sqrt.(R) * K']
-    x_out.Σ.R .= qr!(out_Sigma_R).R
+    if !iszero(R)
+        out_Sigma_R = [x_out.Σ.R; sqrt.(R) * K']
+        x_out.Σ.R .= qr!(out_Sigma_R).R
+    end
 
     return x_out
 end
@@ -235,7 +238,7 @@ end
 
 function project_to_solution_space!(u_probs, states, projmat)
     for (pu, x) in zip(u_probs, states)
-        _gaussian_mul!(pu, projmat, x)
+        PNDE._gaussian_mul!(pu, projmat, x)
     end
     return u_probs
 end
