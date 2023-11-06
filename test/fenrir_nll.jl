@@ -51,3 +51,48 @@ end
     means = ProbNumDiffEq.stack([x.μ for x in states])
     stddevs = ProbNumDiffEq.stack([sqrt.(diag(x.Σ)) for x in states])
 end
+
+@testset "Custom Algorithm Interface" begin
+    @testset "The default case with fixed-diffusion EK1" begin
+        κ² = 1e30
+        alg = EK1(order=3, smooth=true, diffusionmodel=FixedDiffusion(κ², false))
+        nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+        @test nll isa Number
+        @test !isinf(nll)
+        @test ts isa Vector{<:Number}
+        @test states isa StructVector{<:Gaussian}
+    end
+    @testset "EK0" begin
+        κ² = 1e30
+        alg = EK0(order=3, smooth=true, diffusionmodel=FixedDiffusion(κ², false))
+        nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+        @test nll isa Number
+        @test !isinf(nll)
+        @test ts isa Vector{<:Number}
+        @test states isa StructVector{<:Gaussian}
+    end
+    @testset "smooth=false" begin
+        κ² = 1e30
+        alg = EK1(order=3, smooth=false, diffusionmodel=FixedDiffusion(κ², false))
+        @test_throws ArgumentError fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+    end
+    @testset "DynamicDiffusion" begin
+        alg = EK1(order=3, smooth=true, diffusionmodel=DynamicDiffusion())
+        @test_warn "not recommended" fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+        nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+        @test nll isa Number
+        @test !isinf(nll)
+        @test ts isa Vector{<:Number}
+        @test states isa StructVector{<:Gaussian}
+    end
+    @testset "calibrate=true" begin
+        κ² = 1e30
+        alg = EK1(order=3, smooth=true, diffusionmodel=FixedDiffusion(κ², true))
+        @test_warn "not recommended" fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+        nll, ts, states = fenrir_nll(remake(prob, p=pwrong), data, alg, σ², proj=proj)
+        @test nll isa Number
+        @test !isinf(nll)
+        @test ts isa Vector{<:Number}
+        @test states isa StructVector{<:Gaussian}
+    end
+end

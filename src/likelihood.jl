@@ -44,11 +44,34 @@ function fenrir_nll(
     order=3::Int,
     proj=I,
 )
-
     # Set up the solver with the provided diffusion
     κ² = diffusion_var
     diffmodel = κ² isa Number ? FixedDiffusion(κ², false) : FixedMVDiffusion(κ², false)
     alg = EK1(order=order, diffusionmodel=diffmodel, smooth=true)
+
+    return fenrir_nll(prob, data, alg, observation_noise_var;
+                      dt=dt, adaptive=adaptive, tstops=tstops, proj=proj)
+end
+
+function fenrir_nll(
+    prob::ODEProblem,
+    data::NamedTuple{(:t, :u)},
+    alg::ProbNumDiffEq.AbstractEK,
+    observation_noise_var::Real;
+    dt=false,
+    adaptive::Bool=false,
+    tstops=Float64[],
+    proj=I,
+)
+    if !alg.smooth
+        throw(ArgumentError("Fenrir currently requires the passed algorithm to have smoothing enabled (`smooth=true`)"))
+    end
+    if !(alg.diffusionmodel isa FixedDiffusion || alg.diffusionmodel isa FixedMVDiffusion)
+        @warn "Using Fenrir with a non-fixed diffusion model is not recommended! Use at your own risk."
+    end
+    if (alg.diffusionmodel isa FixedDiffusion || alg.diffusionmodel isa FixedMVDiffusion) && alg.diffusionmodel.calibrate
+        @warn "Using Fenrir with automatic calibration of the diffusion is not recommended! Use at your own risk."
+    end
 
     # Create an `integrator` object, and solve the ODE
     integ = init(prob, alg, tstops=union(data.t, tstops), adaptive=adaptive, dt=dt)
