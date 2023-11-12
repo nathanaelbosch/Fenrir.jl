@@ -15,8 +15,10 @@ const GROUP = get(ENV, "GROUP", "All")
         @testset "Code quality (Aqua.jl)" begin
             Aqua.test_all(Fenrir, ambiguities=false)
         end
-        @testset "Code linting (JET.jl)" begin
-            JET.test_package(Fenrir; target_defined_modules=true)
+        if VERSION >= v"1.9"
+            @testset "Code linting (JET.jl)" begin
+                JET.test_package(Fenrir; target_defined_modules=true)
+            end
         end
     end
 end
