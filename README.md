@@ -1,3 +1,6 @@
+**This package is deprecated and will not be maintained anymore, as the functionality of Fenrir.jl is now implemented in [ProbNumDiffEq.jl](https://github.com/nathanaelbosch/ProbNumDiffEq.jl). Just use [ProbNumDiffEq.jl](https://github.com/nathanaelbosch/ProbNumDiffEq.jl) directy.**
+
+
 # Fenrir: Physics-Enhanced Regression for IVPs
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nathanaelbosch.github.io/Fenrir.jl/stable)
